@@ -1695,7 +1695,7 @@
             <Name>TSPX_iut_private_address_interval</Name>
             <Description>Minimum time interval between private address change. (Default: 5000)</Description>
             <Type>INTEGER</Type>
-            <Value>5000</Value>
+            <Value>30000</Value>
           </Row>
           <Row>
             <Name>TSPX_iut_privacy_enabled</Name>
