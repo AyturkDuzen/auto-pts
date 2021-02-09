@@ -109,7 +109,7 @@ def build_and_flash(zephyr_wd, board, board_id, conf_file=None):
         cmd_build.extend(('--', '-DCONF_FILE={}'.format(conf_file)))
     check_call(cmd_build, env=env, cwd=tester_dir)
 
-    cmd_flash = ['west', 'flash', '--snr', board_id]
+    cmd_flash = ['west', 'flash', '--erase', '--snr', board_id]
     check_call(cmd_flash, env=env, cwd=tester_dir)
 
     return get_tty_path(board, board_id)
