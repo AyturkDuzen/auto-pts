@@ -92,7 +92,7 @@ def build_and_flash(zephyr_wd, board, board_id, conf_file=None):
     """Build and flash Zephyr binary
     :param zephyr_wd: Zephyr source path
     :param board: IUT
-    :param board_id: Segger ID
+    :param board_id: Serial number of IUT
     :param conf_file: configuration file to be used
     :return: TTY path
     """
@@ -165,7 +165,7 @@ def apply_overlay(zephyr_wd, base_conf, cfg_name, overlay):
 def get_tty_path(board, board_id):
     """Returns by-id symlink of the target device (eg. /dev/serial/by-id/usb-SEGGER_J-Link_000683477293-if00)
     :param board: IUT
-    :param board_id: Segger ID
+    :param board_id: Serial number of IUT
     :return: tty path if device found, otherwise None
     """
     defined_index_for_device = {
@@ -272,7 +272,7 @@ def run_tests(args, iut_config):
         flush_serial(tty)
         time.sleep(10)
 
-        autoprojects.iutctl.init(args["kernel_image"], tty, args["board"])
+        autoprojects.iutctl.init(args["kernel_image"], tty, args["board"], args["board_id"])
 
         # Setup project PIXITS
         autoprojects.gap.set_pixits(ptses[0])
