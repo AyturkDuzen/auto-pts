@@ -110,10 +110,14 @@ def build_and_flash(zephyr_wd, board, board_id, conf_file=None):
 
     check_call(cmd_build, env=env, cwd=tester_dir)
 
-    cmd_flash = ['west', 'flash', '--erase', '--snr', board_id]
-    check_call(cmd_flash, env=env, cwd=tester_dir)
+    cmd_flash = ['west', 'flash', '--erase']
+    if board_id != '':
+        cmd_flash.extend(('--snr', board_id))
+        check_call(cmd_flash, env=env, cwd=tester_dir)
+        return get_tty_path_by_id(board, board_id)
 
-    return get_tty_path(board, board_id)
+    check_call(cmd_flash, env=env, cwd=tester_dir)
+    return get_tty_path("J-Link")
 
 
 def flush_serial(tty):
@@ -163,8 +167,8 @@ def apply_overlay(zephyr_wd, base_conf, cfg_name, overlay):
     os.chdir(cwd)
 
 
-def get_tty_path(board, board_id):
-    """Returns by-id symlink of the target device (eg. /dev/serial/by-id/usb-SEGGER_J-Link_000683477293-if00)
+def get_tty_path_by_id(board, board_id):
+    """Returns by-id symlink of the target device (eg. /dev/serial/by-id/..)
     :param board: IUT
     :param board_id: Serial number of IUT
     :return: tty path if device found, otherwise None
@@ -183,6 +187,33 @@ def get_tty_path(board, board_id):
         dev = str(dev)
     logging.debug('get_tty_path %s %s %s', board_id, index, dev)
     return dev
+
+
+def get_tty_path(name):
+    """Returns tty path (eg. /dev/ttyUSB0) of serial device with specified name
+    :param name: device name
+    :return: tty path if device found, otherwise None
+    """
+    serial_devices = {}
+    ls = subprocess.Popen(["ls", "-l", "/dev/serial/by-id"],
+                          stdout=subprocess.PIPE)
+
+    awk = subprocess.Popen("awk '{if (NF > 5) print $(NF-2), $NF}'",
+                           stdin=ls.stdout,
+                           stdout=subprocess.PIPE,
+                           shell=True)
+
+    end_of_pipe = awk.stdout
+    for line in end_of_pipe:
+        device, serial = line.decode().rstrip().split(" ")
+        serial_devices[device] = serial
+
+    for device, serial in list(serial_devices.items()):
+        if name in device:
+            tty = os.path.basename(serial)
+            return "/dev/{}".format(tty)
+
+    return None
 
 
 def get_test_cases(ptses):
@@ -273,7 +304,7 @@ def run_tests(args, iut_config):
         flush_serial(tty)
         time.sleep(10)
 
-        autoprojects.iutctl.init(args["kernel_image"], tty, args["board"], args["board_id"])
+        autoprojects.iutctl.init(args["kernel_image"], tty, args["board_id"], args["board"])
 
         # Setup project PIXITS
         autoprojects.gap.set_pixits(ptses[0])

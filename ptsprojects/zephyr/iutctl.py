@@ -51,7 +51,7 @@ def get_qemu_cmd(kernel_image):
 class ZephyrCtl:
     '''Zephyr OS Control Class'''
 
-    def __init__(self, kernel_image, tty_file, board_name=None, board_id=None, use_rtt2pty=None):
+    def __init__(self, kernel_image, tty_file, board_id, board_name=None, use_rtt2pty=None):
         """Constructor."""
         log("%s.%s kernel_image=%s tty_file=%s board_name=%s board_id=%s",
             self.__class__, self.__init__.__name__, kernel_image, tty_file,
@@ -314,7 +314,10 @@ class Board:
         Dependency: nRF5x command line tools
 
         """
-        return 'nrfjprog -r -s ' + self.board_id
+        cmd_reset = ['nrfjprog', '-r']
+        if self.board_id != '':
+            cmd_reset.extend(('-s', self.board_id))
+        return " ".join(cmd_reset)
 
     def _get_reset_cmd_reel(self):
         """Return reset command for Reel_Board DUT
@@ -334,7 +337,7 @@ def init_stub():
     ZEPHYR = ZephyrCtlStub()
 
 
-def init(kernel_image, tty_file, board=None, board_id=None, use_rtt2pty=False):
+def init(kernel_image, tty_file, board_id, board=None, use_rtt2pty=False):
     """IUT init routine
 
     kernel_image -- Path to Zephyr kernel image
@@ -347,7 +350,7 @@ def init(kernel_image, tty_file, board=None, board_id=None, use_rtt2pty=False):
     global ZEPHYR
 
     board_family = (board[:4] + 'x') if ('nrf5' in board) else board
-    ZEPHYR = ZephyrCtl(kernel_image, tty_file, board_family, board_id, use_rtt2pty)
+    ZEPHYR = ZephyrCtl(kernel_image, tty_file, board_id, board_family, use_rtt2pty)
 
 
 def cleanup():
