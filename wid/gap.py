@@ -930,6 +930,17 @@ def hdl_wid_232(desc):
     return True
 
 
+def hdl_wid_406(desc):
+    stack = get_stack()
+    stack.gap.ad[AdType.advertising_interval_long] = "000030"
+    btp.gap_adv_ind_on(ad=stack.gap.ad)
+    return True
+
+
+def hdl_wid_403(desc):
+    return True
+
+
 def hdl_wid_1002(desc):
     stack = get_stack()
     return stack.gap.get_passkey()
